@@ -1,6 +1,7 @@
  Distributed Key-Value Database
 === 
- <div align=center><img src="https://github.com/RemHero/RemHero/blob/main/png/rikka/logo.png" width="200" height="200" alt="ReUp"/><br/></div>
+A Key-Value storage system based on RAFT.
+<div align=center><img src="https://github.com/RemHero/RemHero/blob/main/png/rikka/logo.png" width="200" height="200" alt="ReUp"/><br/></div>
 
 Usage
 ---
