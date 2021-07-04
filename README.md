@@ -3,7 +3,7 @@
 A Key-Value storage system based on RAFT.
 
 <img src="https://img.shields.io/badge/Release-Ver1.0.0-blue.svg" />
-<div align=center><img src="https://github.com/RemHero/RemHero/blob/main/png/rikka/logo.png" width="200" height="200" alt="ReUp"/><br/></div>
+<div align=center><img src="https://github.com/RemHero/RemHero/blob/main/png/RUDB-logo.png"  alt="ReUp"/><br/></div>
 
 Usage
 ---
