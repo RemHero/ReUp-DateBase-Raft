@@ -2,11 +2,16 @@
 === 
 A Key-Value storage system based on RAFT.
 
-<img src="https://img.shields.io/badge/Release-Ver1.0.0-blue.svg" />
+<img src="https://img.shields.io/badge/Release-Ver2.0.0-blue.svg" />
 <div align=center><img src="https://github.com/RemHero/RemHero/blob/main/png/RUDB-logo.png"  alt="ReUp"/><br/></div>
 
 Usage
 ---
+The compiling environment.
+```shell
+Ubuntu 20.04
+```
+
 Compile the RUDB.
 ``` shell
 make
@@ -18,9 +23,9 @@ Run the RUDB's client.
 ./kvstore2pcsystem
 ```
 
-Run the program.
+Run the RUDB's servers.
 ```shell
-./kvstore2pcsystem --c <filename>.config
+./kvstore2pcsystem --c <filename>.conf
 ```
 
 Configure node.
@@ -36,5 +41,20 @@ You can send the command:
 ```
 SET key value
 GET key
-DEL key1 key2 ... keyn
+DEL key
 ```
+
+Example Usage
+---
+Example Usage of client.
+> ./kvstore2pcsystem
+
+Example Usage of servers.
+You can run this command line **in sequence** in different Windows.
+> ./kvstore2pcsystem --c ./other/coordinator.conf
+
+> ./kvstore2pcsystem --c ./other/coordinator1.conf
+
+> ./kvstore2pcsystem --c ./other/coordinator2.conf
+
+> ./kvstore2pcsystem --c ./other/coordinator3.conf
