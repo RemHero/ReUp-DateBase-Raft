@@ -338,22 +338,22 @@ int Participant::performComm(){
                     printf("--------------------part.293\n");
                     if(com.res=="ok"){
                         printf("--------------------part.295\n");
-                        succNum++;
-                        if(succNum>=memberNum/2+1){
+                        succNumP++;
+                        if(succNumP>=memberNum/2+1){
                             // ans="[CLENTRE]/res:ok";//raft算法修改为二阶段
                             dataState=LOG_COMMIT;
                             commitAll();
-                            succNum=1;
+                            succNumP=0;failNumP=0;
                             continue;
                         }
                     }else{
                         printf("--------------------part.303\n");
-                        failNum++;
-                        if(failNum>=memberNum/2+1){
+                        failNumP++;
+                        if(failNumP>=memberNum/2+1){
                             printf("--------------------part.306\n");
                             des.add=Client.add,des.port=Client.port;
                             ans="[CLENTRE]/add:"+add+"/port:"+to_string(port)+"/res:error/";
-                            failNum=0;
+                            failNumP=0;succNumP=0;
                             rollBackAll();
                             log.rollbackLog();
                             continue;
@@ -368,32 +368,39 @@ int Participant::performComm(){
                         flag=false;
                     }
                 }else if(com.type=="[COMRE]"){
-                     printf("--------------------part.348\n");
+                    printf("--------------------part.348\n");
                     if(com.res=="ok"){
+                        // cout << "[1221]"+com.port +"/"+com.res << endl;
                         printf("--------------------part.350\n");
-                        succNum++;
-                        if(succNum>=memberNum/2+1){
+                        succNumC++;
+                        if(succNumC>=memberNum/2+1){
                             dataState=LOG_ABORT;
                             printf("--------------------part.355\n");
                             string ts;
-                            succNum=1;
                             des.add=Client.add,des.port=Client.port;
-                            if(log.commitLog(ts)){
-                                if(!ts.empty())
-                                    ans="[CLENTRE]/add:"+add+"/port:"+to_string(port)+"/res:ok"+"/res:"+ts+"/";
-                                else
-                                    ans="[CLENTRE]/add:"+add+"/port:"+to_string(port)+"/res:ok/";
+                            int turnWhile=0;
+                            while(++turnWhile<10){
+                                if(log.commitLog(ts)){
+                                    if(!ts.empty())
+                                        ans="[CLENTRE]/add:"+add+"/port:"+to_string(port)+"/res:ok"+"/res:"+ts+"/";
+                                    else{
+                                        // cout << "[122]" << endl;
+                                        ans="[CLENTRE]/add:"+add+"/port:"+to_string(port)+"/res:ok/";
+                                    }  
+                                    break;
+                                }
                             }
-                            else ans="[CLENTRE]/add:"+add+"/port:"+to_string(port)+"/res:error/";
+                            if(turnWhile>=10) ans="[CLENTRE~]/add:"+add+"/port:"+to_string(port)+"/res:error/";
+                            succNumC=0;failNumC=0;
                         }
                     }
                     else{
-                        failNum++;
-                        if(failNum>memberNum/2+1){
+                        failNumC++;
+                        if(failNumC>=memberNum/2+1){
                             dataState=LOG_ABORT;
                             des.add=Client.add,des.port=Client.port;
                             ans="[CLENTRE]/add:"+add+"/port:"+to_string(port)+"/res:error/";
-                            failNum=0;
+                            failNumC=0;succNumC=0;
                             rollBackAll();
                             log.rollbackLog();
                         }
@@ -419,16 +426,16 @@ int Participant::PCommandParser(){
     string cmd;
     Command com;
     while(1){
-        printf("--------------------part.260\n");
+        printf("--------------------part.422\n");
         sem_wait(&psem[0]);
-        printf("--------------------part.261\n");
+        printf("--------------------part.424\n");
         if(!cmdQueue.empty()){
-            printf("--------------------part.264\n");
+            printf("--------------------part.426\n");
             cmd=cmdQueue.front();
             printf("%s\n",cmd.c_str());
             printf("--------------------part.428\n");
             cmdQueue.pop();
-            printf("--------------------part.267\n");
+            printf("--------------------part.431\n");
             com=P.commandParser(cmd);
             if(com.type=="[CLIENT]")
                 com.reCmd=cmd;
@@ -436,12 +443,12 @@ int Participant::PCommandParser(){
             //     for(int i=0;i<10000;i++)
             //         cout << "why!!!\n";
             // }
-            printf("--------------------part.271\n");
+            printf("--------------------part.439\n");
             comQueue.push(com);
             sem_post(&psem[1]);
         }
     }
-    printf("--------------------part.268\n");
+    printf("--------------------part.444\n");
     return OK;
 }
 
@@ -510,11 +517,11 @@ void Participant::preTimer(int t){
         sleep(1);
     }
     if(dataState!=LOG_PRE) return;
-    if(succNum<memberNum/2+1){
+    if(succNumP<memberNum/2+1){
         rollBackAll();
         ans="[CLIENT]/add:"+add+"/port:"+to_string(port)+"/res:error/";
         msgSendQueue.push(make_pair(Client,ans));
-        succNum=1;
+        succNumP=0;
         dataState=LOG_ABORT;
     }
 }
@@ -528,11 +535,11 @@ void Participant::comTimer(int t){
         sleep(1);
     }
     if(dataState!=LOG_COMMIT) return;
-    if(succNum<memberNum/2+1){
+    if(succNumC<memberNum/2+1){
         rollBackAll();
         ans="[CLIENT]/add:"+add+"/port:"+to_string(port)+"/res:error/";
         msgSendQueue.push(make_pair(Client,ans));
-        succNum=1;
+        succNumC=0;
         dataState=LOG_ABORT;
     }
 }
@@ -609,7 +616,7 @@ void Participant::Working(){
 // }
 
 Participant::Participant(){
-    round=0,voteNum=1,succNum=1,failNum=0,memberNum=0,timeOut=0;
+    round=0,voteNum=1,succNumP=0,succNumC=0,failNumC=0,failNumP=0,memberNum=0,timeOut=0;
     for(int i=0;i<5;i++){
         if (sem_init(&psem[i],0,0)) {
             printf("[ERROR] Semaphore initialization failed!! <parti.cpp 118>\n");
