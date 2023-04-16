@@ -5,7 +5,7 @@ A Key-Value storage system based on RAFT.
 <img src="https://img.shields.io/badge/Release-Ver2.0.0-blue.svg" />
 <div align=center><img src="https://github.com/RemHero/RemHero/blob/main/png/RUDB-logo.png"  alt="ReUp"/><br/></div>
 “如果喜欢，感觉有用，麻烦随手star一下嗷~”<br/>
-“可能会抽时间会维护一下？代码质量不高，有不懂的请联系邮箱 remhero@hnu.edu.cn”
+“2023上半年会更新仓库代码，问题请联系 remhero@hnu.edu.cn”
 
 Usage
 ---
