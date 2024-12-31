@@ -16,21 +16,24 @@
 
 using namespace std;
 
-class TCPClient
-{
-  private:
+class TCPClient {
+private:
     int sock;
-    std::string address;
     int port;
+    string address;
     struct sockaddr_in server;
-
-  public:
+    
+    // 添加连接状态标志
+    bool is_connected;
+    
+public:
     TCPClient();
-    bool setup(string address, int port);
-    bool Send(string data);
-    string receive(int size = 4096);
-    string read();
-    void exit();
+    ~TCPClient();  // 添加析构函数
+    
+    // 禁用拷贝构造和赋值操作
+    TCPClient(const TCPClient&) = delete;
+    TCPClient& operator=(const TCPClient&) = delete;
+    
+    bool isConnected() const { return is_connected; }
+    // ... other existing declarations ...
 };
-
-#endif

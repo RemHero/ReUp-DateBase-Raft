@@ -1,4 +1,3 @@
-
 #include "../include/logger.h"
 
     // private:
@@ -11,6 +10,17 @@ Logger::Logger(){
 }
 
 void Logger::parseDelVal(string key){
+    // 添加输入验证
+    if (key.empty()) {
+        throw invalid_argument("Empty key for deletion");
+    }
+    
+    // 添加大小限制防止DOS攻击
+    const size_t MAX_KEY_LENGTH = 1024;  // 根据实际需求调整
+    if (key.length() > MAX_KEY_LENGTH) {
+        throw invalid_argument("Key length exceeds maximum allowed size");
+    }
+    
     int lpoi=0,fpoi=0;
     int len=key.length();
     while(key.find(",",lpoi)!=string::npos){
@@ -22,10 +32,24 @@ void Logger::parseDelVal(string key){
     }
 }
 
-void Logger::parseSetVal(string cmd,string &key,string &val){
-    int pos=cmd.find(",");
-    key=cmd.substr(0,pos);
-    val=cmd.substr(pos+1);
+void Logger::parseSetVal(string cmd, string &key, string &val) {
+    // 添加输入验证
+    if (cmd.empty()) {
+        throw invalid_argument("Empty command");
+    }
+
+    // 使用更安全的字符串处理
+    size_t pos = cmd.find_first_of(',');
+    if (pos == string::npos || pos == 0 || pos == cmd.length() - 1) {
+        throw invalid_argument("Invalid command format");
+    }
+
+    try {
+        key = cmd.substr(0, pos);
+        val = cmd.substr(pos + 1);
+    } catch (const std::out_of_range& e) {
+        throw invalid_argument("String operation out of range");
+    }
 }
 
 Log Logger::createLog(int index,string op,string val,string oldval){
@@ -34,6 +58,16 @@ Log Logger::createLog(int index,string op,string val,string oldval){
 
 //"/index:12/op:set/value:10,10"
 Log Logger::str2Log(string str){
+    // 添加基本的输入验证
+    if (str.empty()) {
+        throw invalid_argument("Empty log string");
+    }
+    // 添加格式验证
+    if (str.find("/index:") == string::npos || 
+        str.find("/op:") == string::npos || 
+        str.find("/value:") == string::npos) {
+        throw invalid_argument("Invalid log format");
+    }
     Log tlog;
     Operation opt;
     int index;
@@ -49,6 +83,11 @@ Log Logger::str2Log(string str){
     value=str.substr(indexPoi+7);
     opt.setValue(op,value,"");
     tlog.setValue(index,opt);
+
+    // 添加索引范围检查
+    if (index < 0) {
+        throw out_of_range("Log index cannot be negative");
+    }
     return tlog;
 }
 
@@ -67,6 +106,13 @@ Log Logger::getLog(int posi){
 }
 
 bool Logger::writeLog(Log _l){
+    // 添加容量检查
+    const size_t MAX_LOG_SIZE = 1000000;  // 根据实际需求调整
+    if (log.size() >= MAX_LOG_SIZE) {
+        LOG_ERROR("Log size limit reached");
+        return false;
+    }
+    
     log.push_back(_l);
     posi++;
     cout << "\n[log 71] " << log[posi-1].op.value << endl;
@@ -125,6 +171,10 @@ bool Logger::commitLog(string &ans){
 }
 
 bool Logger::rollbackLog(){
+    if (posi <= 0) {
+       LOG_ERROR("Invalid position for rollback: {}", posi);
+       return false;
+   }
     int _posi=posi-1;
     string op=log[_posi].op.operation;
     string key,val,oldval;
